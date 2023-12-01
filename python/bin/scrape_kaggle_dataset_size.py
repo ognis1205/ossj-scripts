@@ -5,30 +5,42 @@ from traceback import format_exc
 from kaggle import api
 
 
+def progress(page):
+    print('{} {}'.format(['\\', '|', '/', '-'][page % 4], page), end='\r')
+
+
+def by_update_date_and_size(after, inf):
+    return lambda d: d['lastUpdated'] >= after and d['totalBytes'] > inf
+
+
+def write(datasets, output):
+    print(
+        '\n'.join(map(lambda d: str(d['totalBytes']), datasets)),
+        file=output
+    )
+
+
 def main(output='output.txt'):
+    query = {
+        'sort_by': 'updated',
+        'page': 1,
+    }
+
+    by_condition = by_update_date_and_size(
+        datetime.datetime(2023, 1, 1),
+        0,
+    )
+
     with open(output, 'a') as output:
-        search_cond = {
-            'sort_by': 'updated',
-            'page': 1,
-        }
-        ds = map(vars, api.dataset_list(**search_cond))
-        ds = filter(
-            lambda d: d['lastUpdated'] >= datetime.datetime(2023, 1, 1) and d['totalBytes'] > 0,
-            ds
-        )
+        ds = map(vars, api.dataset_list(**query))
+        ds = filter(by_condition, ds)
         ds = list(ds)
         while len(ds) > 0:
-            print('{} {}'.format(['\\', '|', '/', '-'][search_cond['page'] % 4], search_cond['page']), end='\r')
-            print('\n'.join(map(lambda d: str(d['totalBytes']), ds)), file=output)
-            search_cond = {
-                'sort_by': 'updated',
-                'page': search_cond['page'] + 1,
-            }
-            ds = map(vars, api.dataset_list(**search_cond))
-            ds = filter(
-                lambda d: d['lastUpdated'] >= datetime.datetime(2023, 1, 1) and d['totalBytes'] > 0,
-                ds
-            )
+            progress(query['page'])
+            write(ds, output)
+            query['page'] += 1
+            ds = map(vars, api.dataset_list(**query))
+            ds = filter(by_condition, ds)
             ds = list(ds)
 
 
