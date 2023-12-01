@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 kaggle = "*"
 fire = "*"
+tqdm = "*"
 
 [dev-packages]
 
