@@ -7,6 +7,9 @@ name = "pypi"
 kaggle = "*"
 fire = "*"
 tqdm = "*"
+matplotlib = "*"
+numpy = "*"
+notebook = "*"
 
 [dev-packages]
 
